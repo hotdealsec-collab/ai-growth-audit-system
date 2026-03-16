@@ -535,6 +535,15 @@ else:
 - **Measurement test required:** {int(summary_df.loc[0, 'measurement_test_required_count'])}
 """)
 
+        st.markdown(f"""
+- **Average Growth Health Score:** {summary_df.loc[0, 'avg_growth_health_score']:.1f}  
+- **Average Measurement Confidence:** {summary_df.loc[0, 'avg_measurement_confidence_score']:.1f}  
+- **Most common bottleneck:** `{top_bottleneck}` ({top_bottleneck_count} campaigns)  
+- **Scale candidates:** {int(summary_df.loc[0, 'scale_count'])}  
+- **Measurement test required:** {int(summary_df.loc[0, 'measurement_test_required_count'])}  
+- **Strategic keep:** {int(summary_df.loc[0, 'strategic_keep_count'])}
+""")
+        
         # Filters
         st.markdown("### Campaign Explorer")
         f1, f2, f3, f4 = st.columns(4)
@@ -597,44 +606,6 @@ else:
             .interactive()
         )
         st.altair_chart(scatter, use_container_width=True)
-
-        # Recommendation Action Box
-        st.markdown("### Recommendation Action Box")
-        a1, a2, a3 = st.columns(3)
-
-        scale_df = filtered_df[filtered_df["final_recommendation_v4"] == "Scale"][["channel", "campaign", "growth_health_score", "measurement_confidence_score"]]
-        measurement_test_df = filtered_df[filtered_df["final_recommendation_v4"] == "Measurement Test Required"][["channel", "campaign", "growth_health_score", "measurement_confidence_score"]]
-        strategic_keep_df = filtered_df[filtered_df["final_recommendation_v4"] == "Strategic Keep"][["channel", "campaign", "growth_health_score", "measurement_confidence_score"]]
-
-        with a1:
-            st.markdown("<div class='action-card'>", unsafe_allow_html=True)
-            st.markdown("<div class='card-title'>Scale Targets</div>", unsafe_allow_html=True)
-            st.markdown(f"<div class='card-subtle'>{len(scale_df)} campaigns</div>", unsafe_allow_html=True)
-            if len(scale_df) > 0:
-                st.dataframe(scale_df, use_container_width=True, height=220)
-            else:
-                st.caption("No campaigns in this segment.")
-            st.markdown("</div>", unsafe_allow_html=True)
-
-        with a2:
-            st.markdown("<div class='action-card'>", unsafe_allow_html=True)
-            st.markdown("<div class='card-title'>Measurement Test Required</div>", unsafe_allow_html=True)
-            st.markdown(f"<div class='card-subtle'>{len(measurement_test_df)} campaigns</div>", unsafe_allow_html=True)
-            if len(measurement_test_df) > 0:
-                st.dataframe(measurement_test_df, use_container_width=True, height=220)
-            else:
-                st.caption("No campaigns in this segment.")
-            st.markdown("</div>", unsafe_allow_html=True)
-
-        with a3:
-            st.markdown("<div class='action-card'>", unsafe_allow_html=True)
-            st.markdown("<div class='card-title'>Strategic Keep</div>", unsafe_allow_html=True)
-            st.markdown(f"<div class='card-subtle'>{len(strategic_keep_df)} campaigns</div>", unsafe_allow_html=True)
-            if len(strategic_keep_df) > 0:
-                st.dataframe(strategic_keep_df, use_container_width=True, height=220)
-            else:
-                st.caption("No campaigns in this segment.")
-            st.markdown("</div>", unsafe_allow_html=True)
 
         # Channel summary
         st.markdown("### Channel Intelligence")
