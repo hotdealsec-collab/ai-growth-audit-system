@@ -1,0 +1,6 @@
+channel,campaign,os,spend,installs,activated_users,d1_retention,d3_retention,d7_retention,revenue,skan_only,strategic_channel,period_start,period_end
+Google Ads,UA Campaign A,Android,10000,5000,2500,0.35,0.28,0.22,18000,false,false,2026-03-01,2026-03-11
+Apple Search Ads,Brand Campaign,iOS,8000,3000,1600,0.40,0.32,0.25,15000,false,true,2026-03-01,2026-03-11
+Meta Ads,Prospecting,iOS,9000,4200,1800,0.30,0.24,0.19,14000,true,false,2026-03-01,2026-03-11
+Moloco,UA Expansion,Android,7000,3900,1700,0.28,0.21,0.16,11000,false,false,2026-03-01,2026-03-11
+Twitter,Test Campaign,iOS,3000,1200,500,0.22,0.17,0.12,4000,true,false,2026-03-01,2026-03-11
