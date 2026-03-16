@@ -493,7 +493,7 @@ st.markdown(
 # --------------------------------------------------
 st.sidebar.markdown("## Upload")
 
-with st.sidebar.expander("Required columns", expanded=False):
+with st.sidebar.expander("Required columns"):
     st.markdown(
         f"""
         <div class="mono-box">
@@ -526,14 +526,6 @@ else:
         st.markdown("### Management Summary")
         top_bottleneck = bottleneck_counts.iloc[0]["primary_bottleneck"] if len(bottleneck_counts) > 0 else "N/A"
         top_bottleneck_count = bottleneck_counts.iloc[0]["count"] if len(bottleneck_counts) > 0 else 0
-
-        st.markdown(f"""
-- **Average Growth Health Score:** {summary_df.loc[0, 'avg_growth_health_score']:.1f}  
-- **Average Measurement Confidence:** {summary_df.loc[0, 'avg_measurement_confidence_score']:.1f}  
-- **Most common bottleneck:** `{top_bottleneck}` ({top_bottleneck_count} campaigns)  
-- **Scale candidates:** {int(summary_df.loc[0, 'scale_count'])}  
-- **Measurement test required:** {int(summary_df.loc[0, 'measurement_test_required_count'])}
-""")
 
         st.markdown(f"""
 - **Average Growth Health Score:** {summary_df.loc[0, 'avg_growth_health_score']:.1f}  
