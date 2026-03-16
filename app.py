@@ -493,16 +493,16 @@ st.markdown(
 # --------------------------------------------------
 st.sidebar.markdown("## Upload")
 
-with st.sidebar.expander("Required columns"):
-    st.markdown(
-        f"""
-        <div class="mono-box">
-        {"<br>".join(REQUIRED_COLUMNS)}
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-    st.caption("CSV must include all required columns exactly as shown above.")
+st.sidebar.markdown("### Required columns")
+st.sidebar.markdown(
+    f"""
+    <div class="mono-box">
+    {"<br>".join(REQUIRED_COLUMNS)}
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+st.sidebar.caption("CSV must include all required columns exactly as shown above.")
 
 uploaded_file = st.sidebar.file_uploader("Upload CSV", type=["csv"])
 
