@@ -620,6 +620,80 @@ else:
 
         st.dataframe(styled_df, use_container_width=True, height=420)
 
+
+# --------------------------------------------------
+        # AI Operational Insight (日本語 Playbook)
+        # --------------------------------------------------
+        st.markdown("### 🤖 AI 戦略・運用インサイト")
+        
+        # フィルタリングされたデータの中から、最も頻度の高いボトルネックを特定
+        if not filtered_df.empty:
+            main_bottleneck = filtered_df["primary_bottleneck"].mode()[0]
+            
+            # 日本語版マーケティング運用プレイブックの定義
+            playbook_content = {
+                "Weak Day-1 fit": {
+                    "title": "流入とプロダクトの不一致 (Creative-Targeting Misalignment)",
+                    "desc": "広告で期待させた作品や体験が、アプリ起動直後に提供されていません。ユーザーの期待値とのギャップが生じています。",
+                    "actions": [
+                        "広告クリエイティブに使用した作品を、アプリのホーム上部バナーにも固定表示し、導線を一致させる",
+                        "継続率の高い特定ジャンル（ロマンスファンタジー等）以外のターゲティングを一時縮小",
+                        "クリエイティブ内に『待てば無料』システムの説明を加え、ルールを理解した高関心層のみを誘導"
+                    ]
+                },
+                "Early activation decay": {
+                    "title": "初期アクティベーションの失敗 (Early Value Delivery Issue)",
+                    "desc": "インストール後、最初の1話閲覧や無料分消化までに離脱が発生しています。",
+                    "actions": [
+                        "広告クリック時、作品詳細ページではなく『第1話リスト』へ直接遷移するディープリンクの動作確認と最適化",
+                        "演出重視の素材よりも、『1話無料』『期間限定チケット配布』など即時的なインセンティブを強調",
+                        "インストール後1時間以内に未実行のユーザーに対し、CRMプッシュ通知やリマーケティングを集中投下"
+                    ]
+                },
+                "Monetization weakness": {
+                    "title": "収益化のボトルネック (Purchase Conversion Barrier)",
+                    "desc": "ユーザーは残存していますが、コイン購入や課金ページでの離脱が目立ちます。",
+                    "actions": [
+                        "インストール最適化ではなく、課金完了（Purchase）イベントを最適化基準とするキャンペーンを強化",
+                        "ARPPUが検証済みの高価値チャネル（ASAのキーワード広告等）へ予算をシフト",
+                        "クリエイティブ内で『初回購入特典』や『コイン還元キャンペーン』を直接露出し、購買意欲の高い層をフィルタリング"
+                    ]
+                },
+                "Structural retention decay": {
+                    "title": "長期継続率の不足 (Long-term Retention Risk)",
+                    "desc": "短期的な体験だけで満足し、アプリに定着する動機付けが不足しています。",
+                    "actions": [
+                        "読み切り作品の素材を減らし、200話以上の『長期連載作品』の素材比率を拡大",
+                        "媒体側の『7日後再訪問ユーザー』最適化ビッディング（AC 2.0/3.0等）を導入",
+                        "お気に入り登録の誘導など、既存のCRMシナリオと連動したリテンション広告の展開"
+                    ]
+                }
+            }
+
+            # 該当するボトルネックに応じたガイドを表示
+            guide = playbook_content.get(main_bottleneck, {
+                "title": "総合効率の最適化 (General Optimization)",
+                "desc": "特定のボトルネックではなく、全体的な指標管理が必要なフェーズです。",
+                "actions": ["高効率キャンペーン（Scale）の予算増額", "低効率媒体の予算削減とASAへの予算シフト", "データ信頼性（Confidence）の再検証"]
+            })
+
+            # UI レンダリング (HTML/CSS)
+            st.markdown(f"""
+            <div class="mono-box">
+                <div style="color: #60a5fa; font-size: 1.1rem; font-weight: 700;">🎯 重点改善タスク: {guide['title']}</div>
+                <div style="color: #9ca3af; margin-bottom: 10px;">現状分析: {guide['desc']}</div>
+                <div style="margin-left: 10px;">
+                    {"".join([f"<div style='margin-bottom: 5px;'>• {a}</div>" for a in guide['actions']])}
+                </div>
+                <div style="margin-top: 10px; font-size: 0.85rem; color: #f87171;">
+                    ⚠️ この提案は、開発・デザインの修正を行わず、<b>マーケティング運用および予算配分の最適化</b>のみで即座に実行可能です。
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.warning("分析対象のデータがありません。")
+            
+        
         # Download Center
         st.markdown("### Download Center")
         d1, d2 = st.columns(2)
