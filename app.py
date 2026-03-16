@@ -598,29 +598,6 @@ else:
             .interactive()
         )
         st.altair_chart(scatter, use_container_width=True)
-
-        # Channel summary
-        st.markdown("### Channel Intelligence")
-        st.dataframe(channel_summary, use_container_width=True)
-
-        # Styled campaign audit table
-        st.markdown("### Campaign Audit Table")
-        view_columns = [
-            "channel", "campaign", "os",
-            "growth_health_score", "measurement_confidence_score",
-            "primary_bottleneck", "final_recommendation_v4", "audit_summary"
-        ]
-
-        styled_df = (
-            filtered_df[view_columns]
-            .style
-            .applymap(highlight_growth_score, subset=["growth_health_score"])
-            .applymap(highlight_measurement_score, subset=["measurement_confidence_score"])
-        )
-
-        st.dataframe(styled_df, use_container_width=True, height=420)
-
-
 # --------------------------------------------------
         # AI Operational Insight (日本語 Playbook)
         # --------------------------------------------------
@@ -692,8 +669,28 @@ else:
             """, unsafe_allow_html=True)
         else:
             st.warning("分析対象のデータがありません。")
-            
         
+        # Channel summary
+        st.markdown("### Channel Intelligence")
+        st.dataframe(channel_summary, use_container_width=True)
+
+        # Styled campaign audit table
+        st.markdown("### Campaign Audit Table")
+        view_columns = [
+            "channel", "campaign", "os",
+            "growth_health_score", "measurement_confidence_score",
+            "primary_bottleneck", "final_recommendation_v4", "audit_summary"
+        ]
+
+        styled_df = (
+            filtered_df[view_columns]
+            .style
+            .applymap(highlight_growth_score, subset=["growth_health_score"])
+            .applymap(highlight_measurement_score, subset=["measurement_confidence_score"])
+        )
+
+        st.dataframe(styled_df, use_container_width=True, height=420)
+
         # Download Center
         st.markdown("### Download Center")
         d1, d2 = st.columns(2)
