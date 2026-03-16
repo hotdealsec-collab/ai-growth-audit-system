@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import streamlit as st
+import altair as alt
 
 st.set_page_config(
     page_title="AI-assisted Growth Audit System v0.4",
@@ -16,24 +17,66 @@ st.markdown("""
     padding-top: 2rem;
     padding-bottom: 2rem;
 }
-.metric-card {
-    background-color: #111827;
-    padding: 1rem;
-    border-radius: 16px;
-    border: 1px solid #1f2937;
-}
-.section-title {
-    font-size: 1.2rem;
-    font-weight: 700;
-    margin-top: 1rem;
-    margin-bottom: 0.5rem;
-}
 .small-note {
     color: #6b7280;
     font-size: 0.9rem;
 }
+.info-card {
+    background-color: #111827;
+    padding: 1rem 1.2rem;
+    border-radius: 16px;
+    border: 1px solid #1f2937;
+    margin-bottom: 1rem;
+}
+.action-card {
+    background-color: #0f172a;
+    padding: 1rem 1.2rem;
+    border-radius: 16px;
+    border: 1px solid #1f2937;
+    min-height: 220px;
+}
+.card-title {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+.card-subtle {
+    color: #9ca3af;
+    font-size: 0.85rem;
+    margin-bottom: 0.75rem;
+}
+.mono-box {
+    background-color: #111827;
+    color: #f9fafb;
+    padding: 1rem 1.2rem;
+    border-radius: 16px;
+    border: 1px solid #1f2937;
+    font-family: monospace;
+    font-size: 0.95rem;
+    line-height: 1.8;
+}
 </style>
 """, unsafe_allow_html=True)
+
+# --------------------------------------------------
+# Required columns
+# --------------------------------------------------
+REQUIRED_COLUMNS = [
+    "channel",
+    "campaign",
+    "os",
+    "spend",
+    "installs",
+    "activated_users",
+    "d1_retention",
+    "d3_retention",
+    "d7_retention",
+    "revenue",
+    "skan_only",
+    "strategic_channel",
+    "period_start",
+    "period_end",
+]
 
 # --------------------------------------------------
 # Helpers
@@ -99,11 +142,7 @@ def score_category(score):
 # Core engine
 # --------------------------------------------------
 def run_growth_audit_v4(df: pd.DataFrame):
-    required_columns = [
-        "channel", "campaign", "os", "spend", "installs", "activated_users",
-        "d1_retention", "d3_retention", "d7_retention", "revenue",
-        "skan_only", "strategic_channel", "period_start", "period_end",
-    ]
+    required_columns = REQUIRED_COLUMNS
 
     missing_cols = [col for col in required_columns if col not in df.columns]
     if missing_cols:
@@ -377,7 +416,6 @@ def run_growth_audit_v4(df: pd.DataFrame):
 
     df["final_recommendation_v4"] = df.apply(final_recommendation_v4, axis=1)
 
-    # summary text
     def build_audit_summary_v4(row):
         return (
             f"Bottleneck: {row['primary_bottleneck']} | "
@@ -420,6 +458,26 @@ def run_growth_audit_v4(df: pd.DataFrame):
 
     return audit_df, summary_df, channel_summary, bottleneck_counts, final_reco_counts
 
+# --------------------------------------------------
+# Table styling
+# --------------------------------------------------
+def highlight_growth_score(val):
+    if pd.isna(val):
+        return ""
+    if val < 50:
+        return "background-color: rgba(239, 68, 68, 0.35); color: white;"
+    if val < 60:
+        return "background-color: rgba(245, 158, 11, 0.30); color: white;"
+    return ""
+
+def highlight_measurement_score(val):
+    if pd.isna(val):
+        return ""
+    if val < 40:
+        return "background-color: rgba(220, 38, 38, 0.38); color: white;"
+    if val < 60:
+        return "background-color: rgba(234, 179, 8, 0.30); color: white;"
+    return ""
 
 # --------------------------------------------------
 # App header
@@ -429,6 +487,22 @@ st.markdown(
     "<div class='small-note'>Performance × Measurement Confidence × Strategic Decision</div>",
     unsafe_allow_html=True
 )
+
+# --------------------------------------------------
+# Sidebar
+# --------------------------------------------------
+st.sidebar.markdown("## Upload")
+
+with st.sidebar.expander("Required columns", expanded=False):
+    st.markdown(
+        f"""
+        <div class="mono-box">
+        {"<br>".join(REQUIRED_COLUMNS)}
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+    st.caption("CSV must include all required columns exactly as shown above.")
 
 uploaded_file = st.sidebar.file_uploader("Upload CSV", type=["csv"])
 
@@ -486,7 +560,7 @@ else:
         if selected_bottleneck != "All":
             filtered_df = filtered_df[filtered_df["primary_bottleneck"] == selected_bottleneck]
 
-        # Charts
+        # Charts row 1
         col1, col2 = st.columns(2)
 
         with col1:
@@ -497,17 +571,93 @@ else:
             st.markdown("### Final Recommendation Distribution")
             st.bar_chart(final_reco_counts.set_index("final_recommendation_v4"))
 
+        # Scatter plot
+        st.markdown("### Strategic Scatter Plot")
+        scatter_df = filtered_df.copy()
+        scatter_df["campaign_label"] = scatter_df["channel"].astype(str) + " | " + scatter_df["campaign"].astype(str)
+
+        scatter = (
+            alt.Chart(scatter_df)
+            .mark_circle(size=140)
+            .encode(
+                x=alt.X("growth_health_score:Q", title="Growth Health Score"),
+                y=alt.Y("measurement_confidence_score:Q", title="Measurement Confidence Score"),
+                color=alt.Color("final_recommendation_v4:N", title="Final Recommendation"),
+                tooltip=[
+                    alt.Tooltip("channel:N", title="Channel"),
+                    alt.Tooltip("campaign:N", title="Campaign"),
+                    alt.Tooltip("os:N", title="OS"),
+                    alt.Tooltip("growth_health_score:Q", title="Growth Score", format=".1f"),
+                    alt.Tooltip("measurement_confidence_score:Q", title="Measurement Score", format=".1f"),
+                    alt.Tooltip("primary_bottleneck:N", title="Bottleneck"),
+                    alt.Tooltip("final_recommendation_v4:N", title="Recommendation"),
+                ],
+            )
+            .properties(height=420)
+            .interactive()
+        )
+        st.altair_chart(scatter, use_container_width=True)
+
+        # Recommendation Action Box
+        st.markdown("### Recommendation Action Box")
+        a1, a2, a3 = st.columns(3)
+
+        scale_df = filtered_df[filtered_df["final_recommendation_v4"] == "Scale"][["channel", "campaign", "growth_health_score", "measurement_confidence_score"]]
+        measurement_test_df = filtered_df[filtered_df["final_recommendation_v4"] == "Measurement Test Required"][["channel", "campaign", "growth_health_score", "measurement_confidence_score"]]
+        strategic_keep_df = filtered_df[filtered_df["final_recommendation_v4"] == "Strategic Keep"][["channel", "campaign", "growth_health_score", "measurement_confidence_score"]]
+
+        with a1:
+            st.markdown("<div class='action-card'>", unsafe_allow_html=True)
+            st.markdown("<div class='card-title'>Scale Targets</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='card-subtle'>{len(scale_df)} campaigns</div>", unsafe_allow_html=True)
+            if len(scale_df) > 0:
+                st.dataframe(scale_df, use_container_width=True, height=220)
+            else:
+                st.caption("No campaigns in this segment.")
+            st.markdown("</div>", unsafe_allow_html=True)
+
+        with a2:
+            st.markdown("<div class='action-card'>", unsafe_allow_html=True)
+            st.markdown("<div class='card-title'>Measurement Test Required</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='card-subtle'>{len(measurement_test_df)} campaigns</div>", unsafe_allow_html=True)
+            if len(measurement_test_df) > 0:
+                st.dataframe(measurement_test_df, use_container_width=True, height=220)
+            else:
+                st.caption("No campaigns in this segment.")
+            st.markdown("</div>", unsafe_allow_html=True)
+
+        with a3:
+            st.markdown("<div class='action-card'>", unsafe_allow_html=True)
+            st.markdown("<div class='card-title'>Strategic Keep</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='card-subtle'>{len(strategic_keep_df)} campaigns</div>", unsafe_allow_html=True)
+            if len(strategic_keep_df) > 0:
+                st.dataframe(strategic_keep_df, use_container_width=True, height=220)
+            else:
+                st.caption("No campaigns in this segment.")
+            st.markdown("</div>", unsafe_allow_html=True)
+
+        # Channel summary
         st.markdown("### Channel Intelligence")
         st.dataframe(channel_summary, use_container_width=True)
 
+        # Styled campaign audit table
         st.markdown("### Campaign Audit Table")
         view_columns = [
-            "channel", "campaign", "os", "growth_health_score",
-            "measurement_confidence_score", "primary_bottleneck",
-            "final_recommendation_v4", "audit_summary"
+            "channel", "campaign", "os",
+            "growth_health_score", "measurement_confidence_score",
+            "primary_bottleneck", "final_recommendation_v4", "audit_summary"
         ]
-        st.dataframe(filtered_df[view_columns], use_container_width=True)
 
+        styled_df = (
+            filtered_df[view_columns]
+            .style
+            .applymap(highlight_growth_score, subset=["growth_health_score"])
+            .applymap(highlight_measurement_score, subset=["measurement_confidence_score"])
+        )
+
+        st.dataframe(styled_df, use_container_width=True, height=420)
+
+        # Download Center
         st.markdown("### Download Center")
         d1, d2 = st.columns(2)
 
