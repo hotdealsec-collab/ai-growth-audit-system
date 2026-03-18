@@ -687,7 +687,7 @@ else:
         st.dataframe(styled_df, use_container_width=True, height=420)
 
         # ダウンロード・センター
-        st.markdown("### ダウン로드・センター (Download Center)")
+        st.markdown("### ダウンロード・センター (Download Center)")
         d1, d2 = st.columns(2)
 
         d1.download_button(
