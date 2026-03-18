@@ -4,12 +4,12 @@ import streamlit as st
 import altair as alt
 
 st.set_page_config(
-    page_title="AI-assisted Growth Audit System v0.4",
+    page_title="AI 成長監査システム (Growth Audit System) v0.4",
     layout="wide"
 )
 
 # --------------------------------------------------
-# Custom style
+# カスタムスタイル
 # --------------------------------------------------
 st.markdown("""
 <style>
@@ -59,7 +59,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --------------------------------------------------
-# Required columns
+# 必須カラム定義
 # --------------------------------------------------
 REQUIRED_COLUMNS = [
     "channel",
@@ -79,7 +79,7 @@ REQUIRED_COLUMNS = [
 ]
 
 # --------------------------------------------------
-# Helpers
+# ヘルパー関数
 # --------------------------------------------------
 def safe_divide(a, b):
     if pd.isna(a) or pd.isna(b) or b == 0:
@@ -94,59 +94,59 @@ def normalize_bool(value):
 
 def rate_relative_low_is_good(value, avg_value):
     if pd.isna(value) or pd.isna(avg_value):
-        return "Unknown"
+        return "不明"
     if value <= avg_value * 0.85:
-        return "Strong"
+        return "良好"
     elif value <= avg_value * 1.15:
-        return "Moderate"
-    return "Weak"
+        return "普通"
+    return "注意"
 
 def rate_relative_high_is_good(value, avg_value):
     if pd.isna(value) or pd.isna(avg_value):
-        return "Unknown"
+        return "不明"
     if value >= avg_value * 1.15:
-        return "Strong"
+        return "良好"
     elif value >= avg_value * 0.85:
-        return "Moderate"
-    return "Weak"
+        return "普通"
+    return "注意"
 
 def os_tracking_risk(os_value):
     if str(os_value).strip().lower() == "ios":
-        return "ATT Risk"
+        return "ATT リスク"
     if str(os_value).strip().lower() == "android":
-        return "Low Risk"
-    return "Unknown"
+        return "低リスク"
+    return "不明"
 
 def map_score(value):
     score_map = {
-        "Strong": 100,
-        "Moderate": 60,
-        "Weak": 30,
-        "Risky": 20,
-        "Unknown": 50,
+        "良好": 100,
+        "普通": 60,
+        "注意": 30,
+        "リスクあり": 20,
+        "不明": 50,
     }
     return score_map.get(value, 50)
 
 def score_category(score):
     if pd.isna(score):
-        return "Unknown"
+        return "不明"
     if score >= 80:
-        return "Healthy Growth"
+        return "健全な成長"
     if score >= 60:
-        return "Optimization Opportunity"
+        return "最適化の余地あり"
     if score >= 40:
-        return "Structural Growth Issue"
-    return "Critical Growth Risk"
+        return "構造的な成長課題"
+    return "致命的な成長リスク"
 
 # --------------------------------------------------
-# Core engine
+# コアエンジン
 # --------------------------------------------------
 def run_growth_audit_v4(df: pd.DataFrame):
     required_columns = REQUIRED_COLUMNS
 
     missing_cols = [col for col in required_columns if col not in df.columns]
     if missing_cols:
-        raise ValueError(f"Missing required columns: {missing_cols}")
+        raise ValueError(f"必須カラムが不足しています: {missing_cols}")
 
     numeric_cols = [
         "spend", "installs", "activated_users",
@@ -163,7 +163,7 @@ def run_growth_audit_v4(df: pd.DataFrame):
     df["strategic_channel"] = df["strategic_channel"].apply(normalize_bool)
     df["os"] = df["os"].astype(str).str.strip()
 
-    # Core metrics
+    # コア指標の計算
     df["cpi"] = df.apply(lambda x: safe_divide(x["spend"], x["installs"]), axis=1)
     df["activation_rate"] = df.apply(lambda x: safe_divide(x["activated_users"], x["installs"]), axis=1)
     df["arpu"] = df.apply(lambda x: safe_divide(x["revenue"], x["installs"]), axis=1)
@@ -224,51 +224,51 @@ def run_growth_audit_v4(df: pd.DataFrame):
 
     def score_activation_efficiency(activation_rate):
         if pd.isna(activation_rate):
-            return "Unknown"
+            return "不明"
         if activation_rate >= 0.50:
-            return "Strong"
+            return "良好"
         elif activation_rate >= 0.30:
-            return "Moderate"
-        return "Weak"
+            return "普通"
+        return "注意"
 
     def score_retention_stability(d7_retention):
         if pd.isna(d7_retention):
-            return "Unknown"
+            return "不明"
         if d7_retention >= 0.25:
-            return "Strong"
+            return "良好"
         elif d7_retention >= 0.15:
-            return "Moderate"
-        return "Weak"
+            return "普通"
+        return "注意"
 
     def score_early_signal(early_signal_score):
         if pd.isna(early_signal_score):
-            return "Unknown"
+            return "不明"
         if early_signal_score >= 30:
-            return "Strong"
+            return "良好"
         elif early_signal_score >= 18:
-            return "Moderate"
-        return "Weak"
+            return "普通"
+        return "注意"
 
     def score_curve_quality(curve_quality):
         if pd.isna(curve_quality):
-            return "Unknown"
+            return "不明"
         if curve_quality >= 0.45:
-            return "Strong"
+            return "良好"
         elif curve_quality >= 0.30:
-            return "Moderate"
-        return "Weak"
+            return "普通"
+        return "注意"
 
     def score_revenue_efficiency(arpu):
         return rate_relative_high_is_good(arpu, avg_arpu)
 
     def score_payback_health(payback_period):
         if pd.isna(payback_period):
-            return "Unknown"
+            return "不明"
         if payback_period <= 1.5:
-            return "Strong"
+            return "良好"
         elif payback_period <= 3.0:
-            return "Moderate"
-        return "Risky"
+            return "普通"
+        return "リスクあり"
 
     df["traffic_efficiency"] = df["cpi"].apply(score_traffic_efficiency)
     df["activation_efficiency"] = df["activation_rate"].apply(score_activation_efficiency)
@@ -280,20 +280,20 @@ def run_growth_audit_v4(df: pd.DataFrame):
 
     def detect_primary_bottleneck_v2(row):
         if row["d1_retention"] < 0.20:
-            return "Weak Day-1 fit"
+            return "Day-1 適合性の不足"
         if row["d1_to_d3_drop"] > 0.20:
-            return "Early activation decay"
+            return "初期アクティベーションの離脱"
         if row["d3_to_d7_drop"] > 0.15:
-            return "Structural retention decay"
-        if row["activation_efficiency"] == "Weak":
-            return "Activation friction"
-        if row["revenue_efficiency"] == "Weak" and row["retention_stability"] in ["Moderate", "Strong"]:
-            return "Monetization weakness"
-        if row["payback_health"] == "Risky":
-            return "Capital inefficiency"
-        if row["traffic_efficiency"] == "Weak" and row["retention_stability"] == "Weak":
-            return "Acquisition inefficiency"
-        return "No critical bottleneck detected"
+            return "構造的な継続率の低下"
+        if row["activation_efficiency"] == "注意":
+            return "アクティベーションの摩擦"
+        if row["revenue_efficiency"] == "注意" and row["retention_stability"] in ["普通", "良好"]:
+            return "収益化の弱点"
+        if row["payback_health"] == "リスクあり":
+            return "資本効率の悪化"
+        if row["traffic_efficiency"] == "注意" and row["retention_stability"] == "注意":
+            return "獲得効率の低下"
+        return "重大なボトルネックなし"
 
     df["primary_bottleneck"] = df.apply(detect_primary_bottleneck_v2, axis=1)
 
@@ -304,43 +304,43 @@ def run_growth_audit_v4(df: pd.DataFrame):
             row["retention_stability"], row["early_signal_health"],
             row["curve_quality_health"], row["revenue_efficiency"],
         ]
-        weak_signals += sum(1 for x in diagnostic_fields if x == "Weak")
-        weak_signals += 1 if row["payback_health"] == "Risky" else 0
+        weak_signals += sum(1 for x in diagnostic_fields if x == "注意")
+        weak_signals += 1 if row["payback_health"] == "リスクあり" else 0
 
         if row["primary_bottleneck"] in [
-            "Weak Day-1 fit", "Early activation decay", "Structural retention decay"
-        ] and row["payback_health"] == "Risky":
-            return "High"
+            "Day-1 適合性の不足", "初期アクティベーションの離脱", "構造的な継続率の低下"
+        ] and row["payback_health"] == "リスクあり":
+            return "高"
         if weak_signals >= 3:
-            return "High"
+            return "高"
         if weak_signals >= 1:
-            return "Medium"
-        return "Low"
+            return "中"
+        return "低"
 
     df["growth_risk_level"] = df.apply(growth_risk_level_v2, axis=1)
 
     def allocation_suggestion_v2(row):
         if (
-            row["early_signal_health"] == "Strong"
-            and row["payback_health"] == "Strong"
-            and row["revenue_efficiency"] in ["Moderate", "Strong"]
+            row["early_signal_health"] == "良好"
+            and row["payback_health"] == "良好"
+            and row["revenue_efficiency"] in ["普通", "良好"]
         ):
-            return "Scale"
+            return "拡大 (Scale)"
         if row["primary_bottleneck"] in [
-            "Weak Day-1 fit", "Early activation decay", "Activation friction"
+            "Day-1 適合性の不足", "初期アクティベーションの離脱", "アクティベーションの摩擦"
         ]:
-            return "Optimize"
+            return "最適化 (Optimize)"
         if row["primary_bottleneck"] in [
-            "Structural retention decay", "Monetization weakness"
-        ] and row["payback_health"] != "Risky":
-            return "Maintain"
-        if row["payback_health"] == "Risky" and row["growth_risk_level"] in ["Medium", "High"]:
-            return "Reduce"
-        return "Maintain"
+            "構造的な継続率の低下", "収益化の弱点"
+        ] and row["payback_health"] != "リスクあり":
+            return "維持 (Maintain)"
+        if row["payback_health"] == "リスクあり" and row["growth_risk_level"] in ["中", "高"]:
+            return "縮小 (Reduce)"
+        return "維持 (Maintain)"
 
     df["allocation_suggestion"] = df.apply(allocation_suggestion_v2, axis=1)
 
-    # Growth health
+    # 成長ヘルスのスコアリング
     df["traffic_score"] = df["traffic_efficiency"].map(map_score)
     df["activation_score"] = df["activation_efficiency"].map(map_score)
     df["early_signal_score_norm"] = df["early_signal_health"].map(map_score)
@@ -358,7 +358,7 @@ def run_growth_audit_v4(df: pd.DataFrame):
     ).round(1)
     df["growth_health_category"] = df["growth_health_score"].apply(score_category)
 
-    # Measurement
+    # 計測の信頼性
     df["os_tracking_risk"] = df["os"].apply(os_tracking_risk)
 
     def measurement_confidence_score(row):
@@ -377,51 +377,51 @@ def run_growth_audit_v4(df: pd.DataFrame):
 
     def measurement_confidence_level(score):
         if pd.isna(score):
-            return "Unknown"
+            return "不明"
         if score >= 80:
-            return "High"
+            return "高"
         if score >= 60:
-            return "Medium"
+            return "中"
         if score >= 40:
-            return "Low"
-        return "Very Low"
+            return "低"
+        return "極めて低"
 
     df["measurement_confidence_level"] = df["measurement_confidence_score"].apply(measurement_confidence_level)
 
     def measurement_flag(score):
         if pd.isna(score):
-            return "Unknown"
+            return "不明"
         if score < 40:
-            return "Unreliable Data"
+            return "信頼性なし"
         if score < 60:
-            return "Directional Only"
-        return "Reliable"
+            return "参考程度"
+        return "信頼可能"
 
     df["measurement_flag"] = df["measurement_confidence_score"].apply(measurement_flag)
 
     def final_recommendation_v4(row):
         if row["measurement_confidence_score"] < 40 and row["growth_health_score"] < 60:
-            return "Measurement Test Required"
+            return "計測テストが必要"
         if row["strategic_channel"] and row["measurement_confidence_score"] < 50:
-            return "Strategic Keep"
+            return "戦略的維持"
         if row["growth_health_score"] >= 75 and row["measurement_confidence_score"] >= 60:
-            return "Scale"
+            return "拡大 (Scale)"
         if row["growth_health_score"] >= 60 and row["measurement_confidence_score"] >= 40:
-            return "Maintain"
+            return "維持 (Maintain)"
         if row["growth_health_score"] < 50 and row["measurement_confidence_score"] >= 60:
-            return "Reduce"
-        if row["allocation_suggestion"] == "Optimize":
-            return "Optimize"
+            return "縮小 (Reduce)"
+        if row["allocation_suggestion"] == "最適化 (Optimize)":
+            return "最適化 (Optimize)"
         return row["allocation_suggestion"]
 
     df["final_recommendation_v4"] = df.apply(final_recommendation_v4, axis=1)
 
     def build_audit_summary_v4(row):
         return (
-            f"Bottleneck: {row['primary_bottleneck']} | "
-            f"Growth score: {row['growth_health_score']} | "
-            f"Measurement: {row['measurement_confidence_level']} | "
-            f"Action: {row['final_recommendation_v4']}"
+            f"ボトルネック: {row['primary_bottleneck']} | "
+            f"成長スコア: {row['growth_health_score']} | "
+            f"計測信頼性: {row['measurement_confidence_level']} | "
+            f"アクション: {row['final_recommendation_v4']}"
         )
 
     df["audit_summary"] = df.apply(build_audit_summary_v4, axis=1)
@@ -433,11 +433,11 @@ def run_growth_audit_v4(df: pd.DataFrame):
         "total_installs": df["installs"].sum(skipna=True),
         "avg_growth_health_score": df["growth_health_score"].mean(skipna=True),
         "avg_measurement_confidence_score": df["measurement_confidence_score"].mean(skipna=True),
-        "high_risk_count": (df["growth_risk_level"] == "High").sum(),
-        "scale_count": (df["final_recommendation_v4"] == "Scale").sum(),
-        "reduce_count": (df["final_recommendation_v4"] == "Reduce").sum(),
-        "measurement_test_required_count": (df["final_recommendation_v4"] == "Measurement Test Required").sum(),
-        "strategic_keep_count": (df["final_recommendation_v4"] == "Strategic Keep").sum(),
+        "high_risk_count": (df["growth_risk_level"] == "高").sum(),
+        "scale_count": (df["final_recommendation_v4"] == "拡大 (Scale)").sum(),
+        "reduce_count": (df["final_recommendation_v4"] == "縮小 (Reduce)").sum(),
+        "measurement_test_required_count": (df["final_recommendation_v4"] == "計測テストが必要").sum(),
+        "strategic_keep_count": (df["final_recommendation_v4"] == "戦略적維持").sum(),
     }
     summary_df = pd.DataFrame([summary])
 
@@ -459,7 +459,7 @@ def run_growth_audit_v4(df: pd.DataFrame):
     return audit_df, summary_df, channel_summary, bottleneck_counts, final_reco_counts
 
 # --------------------------------------------------
-# Table styling
+# テーブルスタイリング
 # --------------------------------------------------
 def highlight_growth_score(val):
     if pd.isna(val):
@@ -480,20 +480,20 @@ def highlight_measurement_score(val):
     return ""
 
 # --------------------------------------------------
-# App header
+# アプリヘッダー
 # --------------------------------------------------
-st.markdown("## AI-assisted Growth Audit System")
+st.markdown("## AI 成長監査システム (Growth Audit System)")
 st.markdown(
-    "<div class='small-note'>Performance × Measurement Confidence × Strategic Decision</div>",
+    "<div class='small-note'>パフォーマンス × 計測信頼性 × 戦略的決定</div>",
     unsafe_allow_html=True
 )
 
 # --------------------------------------------------
-# Sidebar
+# サイドバー
 # --------------------------------------------------
-st.sidebar.markdown("## Upload")
+st.sidebar.markdown("## アップロード")
 
-st.sidebar.markdown("### Required columns")
+st.sidebar.markdown("### 必須カラム")
 st.sidebar.markdown(
     f"""
     <div class="mono-box">
@@ -502,78 +502,78 @@ st.sidebar.markdown(
     """,
     unsafe_allow_html=True
 )
-st.sidebar.caption("CSV must include all required columns exactly as shown above.")
+st.sidebar.caption("CSVには上記の必須カラムが正確に含まれている必要があります。")
 
-uploaded_file = st.sidebar.file_uploader("Upload CSV", type=["csv"])
+uploaded_file = st.sidebar.file_uploader("CSVをアップロード", type=["csv"])
 
 if uploaded_file is None:
-    st.info("CSV 파일을 업로드하면 Executive Dashboard가 생성됩니다.")
+    st.info("CSVファイルをアップロードすると、エグゼクティブ・ダッシュボードが生成されます。")
 else:
     try:
         raw_df = pd.read_csv(uploaded_file)
         audit_df, summary_df, channel_summary, bottleneck_counts, final_reco_counts = run_growth_audit_v4(raw_df.copy())
 
-        # Executive KPIs
-        st.markdown("### Executive Overview")
+        # エグゼクティブ KPI
+        st.markdown("### エグゼクティブ・オーバービュー")
         c1, c2, c3, c4, c5 = st.columns(5)
-        c1.metric("Avg Growth Score", f"{summary_df.loc[0, 'avg_growth_health_score']:.1f}")
-        c2.metric("Avg Measurement Confidence", f"{summary_df.loc[0, 'avg_measurement_confidence_score']:.1f}")
-        c3.metric("High Risk", int(summary_df.loc[0, "high_risk_count"]))
-        c4.metric("Scale", int(summary_df.loc[0, "scale_count"]))
-        c5.metric("Measurement Test", int(summary_df.loc[0, "measurement_test_required_count"]))
+        c1.metric("平均成長スコア", f"{summary_df.loc[0, 'avg_growth_health_score']:.1f}")
+        c2.metric("平均計測信頼性", f"{summary_df.loc[0, 'avg_measurement_confidence_score']:.1f}")
+        c3.metric("高リスク件数", int(summary_df.loc[0, "high_risk_count"]))
+        c4.metric("拡大推奨", int(summary_df.loc[0, "scale_count"]))
+        c5.metric("計測テスト対象", int(summary_df.loc[0, "measurement_test_required_count"]))
 
-        # Management summary
-        st.markdown("### Management Summary")
+        # 経営サマリー
+        st.markdown("### 経営サマリー")
         top_bottleneck = bottleneck_counts.iloc[0]["primary_bottleneck"] if len(bottleneck_counts) > 0 else "N/A"
         top_bottleneck_count = bottleneck_counts.iloc[0]["count"] if len(bottleneck_counts) > 0 else 0
 
         st.markdown(f"""
-- **Average Growth Health Score:** {summary_df.loc[0, 'avg_growth_health_score']:.1f}  
-- **Average Measurement Confidence:** {summary_df.loc[0, 'avg_measurement_confidence_score']:.1f}  
-- **Most common bottleneck:** `{top_bottleneck}` ({top_bottleneck_count} campaigns)  
-- **Scale candidates:** {int(summary_df.loc[0, 'scale_count'])}  
-- **Measurement test required:** {int(summary_df.loc[0, 'measurement_test_required_count'])}  
-- **Strategic keep:** {int(summary_df.loc[0, 'strategic_keep_count'])}
+- **平均成長ヘルススコア:** {summary_df.loc[0, 'avg_growth_health_score']:.1f}  
+- **平均計測信頼性スコア:** {summary_df.loc[0, 'avg_measurement_confidence_score']:.1f}  
+- **最も一般的なボトルネック:** `{top_bottleneck}` ({top_bottleneck_count} キャンペーン)  
+- **拡大候補数:** {int(summary_df.loc[0, 'scale_count'])}  
+- **計測テストが必要なキャンペーン:** {int(summary_df.loc[0, 'measurement_test_required_count'])}  
+- **戦略的維持キャンペーン:** {int(summary_df.loc[0, 'strategic_keep_count'])}
 """)
         
-        # Filters
-        st.markdown("### Campaign Explorer")
+        # フィルター
+        st.markdown("### キャンペーン・エクスプローラー")
         f1, f2, f3, f4 = st.columns(4)
 
-        channel_options = ["All"] + sorted(audit_df["channel"].dropna().unique().tolist())
-        os_options = ["All"] + sorted(audit_df["os"].dropna().unique().tolist())
-        reco_options = ["All"] + sorted(audit_df["final_recommendation_v4"].dropna().unique().tolist())
-        bottleneck_options = ["All"] + sorted(audit_df["primary_bottleneck"].dropna().unique().tolist())
+        channel_options = ["すべて"] + sorted(audit_df["channel"].dropna().unique().tolist())
+        os_options = ["すべて"] + sorted(audit_df["os"].dropna().unique().tolist())
+        reco_options = ["すべて"] + sorted(audit_df["final_recommendation_v4"].dropna().unique().tolist())
+        bottleneck_options = ["すべて"] + sorted(audit_df["primary_bottleneck"].dropna().unique().tolist())
 
-        selected_channel = f1.selectbox("Channel", channel_options)
+        selected_channel = f1.selectbox("チャネル", channel_options)
         selected_os = f2.selectbox("OS", os_options)
-        selected_reco = f3.selectbox("Final Recommendation", reco_options)
-        selected_bottleneck = f4.selectbox("Bottleneck", bottleneck_options)
+        selected_reco = f3.selectbox("最終推奨アクション", reco_options)
+        selected_bottleneck = f4.selectbox("ボトルネック", bottleneck_options)
 
         filtered_df = audit_df.copy()
 
-        if selected_channel != "All":
+        if selected_channel != "すべて":
             filtered_df = filtered_df[filtered_df["channel"] == selected_channel]
-        if selected_os != "All":
+        if selected_os != "すべて":
             filtered_df = filtered_df[filtered_df["os"] == selected_os]
-        if selected_reco != "All":
+        if selected_reco != "すべて":
             filtered_df = filtered_df[filtered_df["final_recommendation_v4"] == selected_reco]
-        if selected_bottleneck != "All":
+        if selected_bottleneck != "すべて":
             filtered_df = filtered_df[filtered_df["primary_bottleneck"] == selected_bottleneck]
 
-        # Charts row 1
+        # チャート 1行目
         col1, col2 = st.columns(2)
 
         with col1:
-            st.markdown("### Bottleneck Distribution")
+            st.markdown("### ボトルネック分布")
             st.bar_chart(bottleneck_counts.set_index("primary_bottleneck"))
 
         with col2:
-            st.markdown("### Final Recommendation Distribution")
+            st.markdown("### 最終推奨アクションの分布")
             st.bar_chart(final_reco_counts.set_index("final_recommendation_v4"))
 
-        # Scatter plot
-        st.markdown("### Strategic Scatter Plot")
+        # 散布図
+        st.markdown("### 戦略的散布図 (Strategic Scatter Plot)")
         scatter_df = filtered_df.copy()
         scatter_df["campaign_label"] = scatter_df["channel"].astype(str) + " | " + scatter_df["campaign"].astype(str)
 
@@ -581,36 +581,33 @@ else:
             alt.Chart(scatter_df)
             .mark_circle(size=140)
             .encode(
-                x=alt.X("growth_health_score:Q", title="Growth Health Score"),
-                y=alt.Y("measurement_confidence_score:Q", title="Measurement Confidence Score"),
-                color=alt.Color("final_recommendation_v4:N", title="Final Recommendation"),
+                x=alt.X("growth_health_score:Q", title="成長ヘルススコア"),
+                y=alt.Y("measurement_confidence_score:Q", title="計測信頼性スコア"),
+                color=alt.Color("final_recommendation_v4:N", title="最終推奨"),
                 tooltip=[
-                    alt.Tooltip("channel:N", title="Channel"),
-                    alt.Tooltip("campaign:N", title="Campaign"),
+                    alt.Tooltip("channel:N", title="チャネル"),
+                    alt.Tooltip("campaign:N", title="キャンペーン"),
                     alt.Tooltip("os:N", title="OS"),
-                    alt.Tooltip("growth_health_score:Q", title="Growth Score", format=".1f"),
-                    alt.Tooltip("measurement_confidence_score:Q", title="Measurement Score", format=".1f"),
-                    alt.Tooltip("primary_bottleneck:N", title="Bottleneck"),
-                    alt.Tooltip("final_recommendation_v4:N", title="Recommendation"),
+                    alt.Tooltip("growth_health_score:Q", title="成長スコア", format=".1f"),
+                    alt.Tooltip("measurement_confidence_score:Q", title="計測スコア", format=".1f"),
+                    alt.Tooltip("primary_bottleneck:N", title="ボトルネック"),
+                    alt.Tooltip("final_recommendation_v4:N", title="推奨アクション"),
                 ],
             )
             .properties(height=420)
             .interactive()
         )
         st.altair_chart(scatter, use_container_width=True)
-# --------------------------------------------------
-        # AI Operational Insight (日本語 Playbook)
-        # --------------------------------------------------
+
+        # AI 戦略・運用インサイト (Playbook)
         st.markdown("### 🤖 AI 戦略・運用インサイト")
         
-        # フィルタリングされたデータの中から、最も頻度の高いボトルネックを特定
         if not filtered_df.empty:
             main_bottleneck = filtered_df["primary_bottleneck"].mode()[0]
             
-            # 日本語版マーケティング運用プレイブックの定義
             playbook_content = {
-                "Weak Day-1 fit": {
-                    "title": "流入とプロダクトの不一致 (Creative-Targeting Misalignment)",
+                "Day-1 適合性の不足": {
+                    "title": "流入とプロダクト의不一致 (Creative-Targeting Misalignment)",
                     "desc": "広告で期待させた作品や体験が、アプリ起動直後に提供されていません。ユーザーの期待値とのギャップが生じています。",
                     "actions": [
                         "広告クリエイティブに使用した作品を、アプリのホーム上部バナーにも固定表示し、導線を一致させる",
@@ -618,7 +615,7 @@ else:
                         "クリエイティブ内に『待てば無料』システムの説明を加え、ルールを理解した高関心層のみを誘導"
                     ]
                 },
-                "Early activation decay": {
+                "初期アクティベーション의離脱": {
                     "title": "初期アクティベーションの失敗 (Early Value Delivery Issue)",
                     "desc": "インストール後、最初の1話閲覧や無料分消化までに離脱が発生しています。",
                     "actions": [
@@ -627,7 +624,7 @@ else:
                         "インストール後1時間以内に未実行のユーザーに対し、CRMプッシュ通知やリマーケティングを集中投下"
                     ]
                 },
-                "Monetization weakness": {
+                "収益化の弱点": {
                     "title": "収益化のボトルネック (Purchase Conversion Barrier)",
                     "desc": "ユーザーは残存していますが、コイン購入や課金ページでの離脱が目立ちます。",
                     "actions": [
@@ -636,7 +633,7 @@ else:
                         "クリエイティブ内で『初回購入特典』や『コイン還元キャンペーン』を直接露出し、購買意欲の高い層をフィルタリング"
                     ]
                 },
-                "Structural retention decay": {
+                "構造的な継続率の低下": {
                     "title": "長期継続率の不足 (Long-term Retention Risk)",
                     "desc": "短期的な体験だけで満足し、アプリに定着する動機付けが不足しています。",
                     "actions": [
@@ -647,14 +644,12 @@ else:
                 }
             }
 
-            # 該当するボトルネックに応じたガイドを表示
             guide = playbook_content.get(main_bottleneck, {
                 "title": "総合効率の最適化 (General Optimization)",
                 "desc": "特定のボトルネックではなく、全体的な指標管理が必要なフェーズです。",
-                "actions": ["高効率キャンペーン（Scale）の予算増額", "低効率媒体の予算削減とASAへの予算シフト", "データ信頼性（Confidence）の再検証"]
+                "actions": ["高効率キャンペーン（拡大）の予算増額", "低効率媒体の予算削減と予算シフト", "データ信頼性（計測環境）の再検証"]
             })
 
-            # UI レンダリング (HTML/CSS)
             st.markdown(f"""
             <div class="mono-box">
                 <div style="color: #60a5fa; font-size: 1.1rem; font-weight: 700;">🎯 重点改善タスク: {guide['title']}</div>
@@ -670,12 +665,12 @@ else:
         else:
             st.warning("分析対象のデータがありません。")
         
-        # Channel summary
-        st.markdown("### Channel Intelligence")
+        # チャネル・サ마リー
+        st.markdown("### チャネル・インテリジェンス (Channel Intelligence)")
         st.dataframe(channel_summary, use_container_width=True)
 
-        # Styled campaign audit table
-        st.markdown("### Campaign Audit Table")
+        # 監査テーブル
+        st.markdown("### キャンペーン監査テーブル (Campaign Audit Table)")
         view_columns = [
             "channel", "campaign", "os",
             "growth_health_score", "measurement_confidence_score",
@@ -691,23 +686,23 @@ else:
 
         st.dataframe(styled_df, use_container_width=True, height=420)
 
-        # Download Center
-        st.markdown("### Download Center")
+        # ダウンロード・センター
+        st.markdown("### ダウン로드・センター (Download Center)")
         d1, d2 = st.columns(2)
 
         d1.download_button(
-            "Download Audit Output CSV",
+            "監査出力 (CSV) をダウンロード",
             audit_df.to_csv(index=False).encode("utf-8"),
-            file_name="growth_audit_output_v4.csv",
+            file_name="growth_audit_output_jp.csv",
             mime="text/csv",
         )
 
         d2.download_button(
-            "Download Channel Summary CSV",
+            "チャネルサマリー (CSV) をダウンロード",
             channel_summary.to_csv(index=False).encode("utf-8"),
-            file_name="growth_channel_summary_v4.csv",
+            file_name="growth_channel_summary_jp.csv",
             mime="text/csv",
         )
 
     except Exception as e:
-        st.error(f"Error: {e}")
+        st.error(f"エラーが発生しました: {e}")
