@@ -535,70 +535,6 @@ else:
 - **計測テストが必要なキャンペーン:** {int(summary_df.loc[0, 'measurement_test_required_count'])}  
 - **戦略的維持キャンペーン:** {int(summary_df.loc[0, 'strategic_keep_count'])}
 """)
-        
-        # フィルター
-        st.markdown("### キャンペーン・エクスプローラー")
-        f1, f2, f3, f4 = st.columns(4)
-
-        channel_options = ["すべて"] + sorted(audit_df["channel"].dropna().unique().tolist())
-        os_options = ["すべて"] + sorted(audit_df["os"].dropna().unique().tolist())
-        reco_options = ["すべて"] + sorted(audit_df["final_recommendation_v4"].dropna().unique().tolist())
-        bottleneck_options = ["すべて"] + sorted(audit_df["primary_bottleneck"].dropna().unique().tolist())
-
-        selected_channel = f1.selectbox("チャネル", channel_options)
-        selected_os = f2.selectbox("OS", os_options)
-        selected_reco = f3.selectbox("最終推奨アクション", reco_options)
-        selected_bottleneck = f4.selectbox("ボトルネック", bottleneck_options)
-
-        filtered_df = audit_df.copy()
-
-        if selected_channel != "すべて":
-            filtered_df = filtered_df[filtered_df["channel"] == selected_channel]
-        if selected_os != "すべて":
-            filtered_df = filtered_df[filtered_df["os"] == selected_os]
-        if selected_reco != "すべて":
-            filtered_df = filtered_df[filtered_df["final_recommendation_v4"] == selected_reco]
-        if selected_bottleneck != "すべて":
-            filtered_df = filtered_df[filtered_df["primary_bottleneck"] == selected_bottleneck]
-
-        # チャート 1行目
-        col1, col2 = st.columns(2)
-
-        with col1:
-            st.markdown("### ボトルネック分布")
-            st.bar_chart(bottleneck_counts.set_index("primary_bottleneck"))
-
-        with col2:
-            st.markdown("### 最終推奨アクションの分布")
-            st.bar_chart(final_reco_counts.set_index("final_recommendation_v4"))
-
-        # 散布図
-        st.markdown("### 戦略的散布図 (Strategic Scatter Plot)")
-        scatter_df = filtered_df.copy()
-        scatter_df["campaign_label"] = scatter_df["channel"].astype(str) + " | " + scatter_df["campaign"].astype(str)
-
-        scatter = (
-            alt.Chart(scatter_df)
-            .mark_circle(size=140)
-            .encode(
-                x=alt.X("growth_health_score:Q", title="成長ヘルススコア"),
-                y=alt.Y("measurement_confidence_score:Q", title="計測信頼性スコア"),
-                color=alt.Color("final_recommendation_v4:N", title="最終推奨"),
-                tooltip=[
-                    alt.Tooltip("channel:N", title="チャネル"),
-                    alt.Tooltip("campaign:N", title="キャンペーン"),
-                    alt.Tooltip("os:N", title="OS"),
-                    alt.Tooltip("growth_health_score:Q", title="成長スコア", format=".1f"),
-                    alt.Tooltip("measurement_confidence_score:Q", title="計測スコア", format=".1f"),
-                    alt.Tooltip("primary_bottleneck:N", title="ボトルネック"),
-                    alt.Tooltip("final_recommendation_v4:N", title="推奨アクション"),
-                ],
-            )
-            .properties(height=420)
-            .interactive()
-        )
-        st.altair_chart(scatter, use_container_width=True)
-
         # AI 戦略・運用インサイト (Playbook)
         st.markdown("### 🤖 AI 戦略・運用インサイト")
         
@@ -664,6 +600,69 @@ else:
             """, unsafe_allow_html=True)
         else:
             st.warning("分析対象のデータがありません。")
+            
+        # フィルター
+        st.markdown("### キャンペーン・エクスプローラー")
+        f1, f2, f3, f4 = st.columns(4)
+
+        channel_options = ["すべて"] + sorted(audit_df["channel"].dropna().unique().tolist())
+        os_options = ["すべて"] + sorted(audit_df["os"].dropna().unique().tolist())
+        reco_options = ["すべて"] + sorted(audit_df["final_recommendation_v4"].dropna().unique().tolist())
+        bottleneck_options = ["すべて"] + sorted(audit_df["primary_bottleneck"].dropna().unique().tolist())
+
+        selected_channel = f1.selectbox("チャネル", channel_options)
+        selected_os = f2.selectbox("OS", os_options)
+        selected_reco = f3.selectbox("最終推奨アクション", reco_options)
+        selected_bottleneck = f4.selectbox("ボトルネック", bottleneck_options)
+
+        filtered_df = audit_df.copy()
+
+        if selected_channel != "すべて":
+            filtered_df = filtered_df[filtered_df["channel"] == selected_channel]
+        if selected_os != "すべて":
+            filtered_df = filtered_df[filtered_df["os"] == selected_os]
+        if selected_reco != "すべて":
+            filtered_df = filtered_df[filtered_df["final_recommendation_v4"] == selected_reco]
+        if selected_bottleneck != "すべて":
+            filtered_df = filtered_df[filtered_df["primary_bottleneck"] == selected_bottleneck]
+
+        # チャート 1行目
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.markdown("### ボトルネック分布")
+            st.bar_chart(bottleneck_counts.set_index("primary_bottleneck"))
+
+        with col2:
+            st.markdown("### 最終推奨アクションの分布")
+            st.bar_chart(final_reco_counts.set_index("final_recommendation_v4"))
+
+        # 散布図
+        st.markdown("### 戦略的散布図 (Strategic Scatter Plot)")
+        scatter_df = filtered_df.copy()
+        scatter_df["campaign_label"] = scatter_df["channel"].astype(str) + " | " + scatter_df["campaign"].astype(str)
+
+        scatter = (
+            alt.Chart(scatter_df)
+            .mark_circle(size=140)
+            .encode(
+                x=alt.X("growth_health_score:Q", title="成長ヘルススコア"),
+                y=alt.Y("measurement_confidence_score:Q", title="計測信頼性スコア"),
+                color=alt.Color("final_recommendation_v4:N", title="最終推奨"),
+                tooltip=[
+                    alt.Tooltip("channel:N", title="チャネル"),
+                    alt.Tooltip("campaign:N", title="キャンペーン"),
+                    alt.Tooltip("os:N", title="OS"),
+                    alt.Tooltip("growth_health_score:Q", title="成長スコア", format=".1f"),
+                    alt.Tooltip("measurement_confidence_score:Q", title="計測スコア", format=".1f"),
+                    alt.Tooltip("primary_bottleneck:N", title="ボトルネック"),
+                    alt.Tooltip("final_recommendation_v4:N", title="推奨アクション"),
+                ],
+            )
+            .properties(height=420)
+            .interactive()
+        )
+        st.altair_chart(scatter, use_container_width=True)
         
         # チャネル・サ마リー
         st.markdown("### チャネル・インテリジェンス (Channel Intelligence)")
