@@ -566,17 +566,24 @@ else:
         if selected_bottleneck != "すべて":
             filtered_df = filtered_df[filtered_df["primary_bottleneck"] == selected_bottleneck]
  
-        # チャート 1行目
+      # チャート 1行目 (수정된 부분: filtered_df 기반으로 재계산)
         col1, col2 = st.columns(2)
 
         with col1:
             st.markdown("### ボトルネック分布")
-            st.bar_chart(bottleneck_counts.set_index("primary_bottleneck"))
+            # 필터링된 데이터로 병목 현상 카운트 재계산
+            filtered_bottleneck = filtered_df["primary_bottleneck"].value_counts().reset_index()
+            filtered_bottleneck.columns = ["primary_bottleneck", "count"]
+            st.bar_chart(filtered_bottleneck.set_index("primary_bottleneck"))
 
         with col2:
             st.markdown("### 最終推奨アクションの分布")
-            st.bar_chart(final_reco_counts.set_index("final_recommendation_v4"))
+            # 필터링된 데이터로 추천 액션 카운트 재계산
+            filtered_reco = filtered_df["final_recommendation_v4"].value_counts().reset_index()
+            filtered_reco.columns = ["final_recommendation_v4", "count"]
+            st.bar_chart(filtered_reco.set_index("final_recommendation_v4"))
 
+        
         # 散布図
         st.markdown("### 戦略的散布図 (Strategic Scatter Plot)")
         scatter_df = filtered_df.copy()
