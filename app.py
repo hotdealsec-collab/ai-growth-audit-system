@@ -599,71 +599,110 @@ else:
         )
         st.altair_chart(scatter, use_container_width=True)
 
-        # AI 戦略・運用インサイト (Playbook)
-        st.markdown("### 🤖 AI 戦略・運用インサイト")
+
+# AI 戦略・運用インサイト (Playbook) - 정교화 버전
+        st.markdown("### 🤖 AI 戦略・運用インサイト (Advanced Playbook)")
         
         if not filtered_df.empty:
+            # 1. 동적 데이터 추출
             main_bottleneck = filtered_df["primary_bottleneck"].mode()[0]
+            avg_health = filtered_df["growth_health_score"].mean()
+            ios_ratio = (filtered_df["os"].str.lower() == "ios").mean()
+            low_confidence_count = (filtered_df["measurement_confidence_level"].isin(["低", "極めて低"])).sum()
             
+            # 2. 동적 진단 메시지 생성
+            diagnostic_msg = f"選択されたキャンペーン群の主たるボトルネックは「<b>{main_bottleneck}</b>」です。"
+            if avg_health < 50:
+                diagnostic_msg += f"<br>⚠️ 平均成長スコアが <b>{avg_health:.1f}</b> と低迷しており、早急な予算リアロケーションが推奨されます。"
+            elif avg_health >= 70:
+                diagnostic_msg += f"<br>✅ 全体的に健全なスコア（<b>{avg_health:.1f}</b>）を維持しています。さらなるスケールアップの機会を探りましょう。"
+
+            # 3. 병목별 핵심 전략 프레임워크 (Immediate, Optimize, Measurement 3단계)
             playbook_content = {
                 "Day-1 適合性の不足": {
                     "title": "流入とプロダクトの不一致 (Creative-Targeting Misalignment)",
-                    "desc": "広告で期待させた作品や体験が、アプリ起動直後に提供されていません。ユーザーの期待値とのギャップが生じています。",
-                    "actions": [
-                        "広告クリエイティブに使用した作品を、アプリのホーム上部バナーにも固定表示し、導線を一致させる",
-                        "継続率の高い特定ジャンル（ロマンスファンタジー等）以外のターゲティングを一時縮小",
-                        "クリエイティブ内に『待てば無料』システムの説明を加え、ルールを理解した高関心層のみを誘導"
+                    "immediate": ["Day-1継続率が20%未満のキャンペーンは直ちに日予算を50%削減または停止"],
+                    "optimize": [
+                        "広告クリエイティブに使用したフック（絵柄やオファー）とアプリ起動直後の画面を一致させる",
+                        "継続率の高い特定ジャンル以外のターゲティングを一時縮小"
                     ]
                 },
                 "初期アクティベーションの離脱": {
                     "title": "初期アクティベーションの失敗 (Early Value Delivery Issue)",
-                    "desc": "インストール後、最初の1話閲覧や無料分消化までに離脱が発生しています。",
-                    "actions": [
-                        "広告クリック時、作品詳細ページではなく『第1話リスト』へ直接遷移するディープリンクの動作確認と最適化",
-                        "演出重視の素材よりも、『1話無料』『期間限定チケット配布』など即時的なインセンティブを強調",
-                        "インストール後1時間以内に未実行のユーザーに対し、CRMプッシュ通知やリマーケティングを集中投下"
+                    "immediate": ["アクティベーション単価（CPA）が許容範囲を30%超えるセグメントの入札額を下げる"],
+                    "optimize": [
+                        "クリック時のディープリンク先を最適化し、ユーザーに最短でコアバリュー（第1話無料など）を体験させる",
+                        "インストール後24時間以内のプッシュ通知/CRMシナリオを強化"
                     ]
                 },
                 "収益化の弱点": {
                     "title": "収益化のボトルネック (Purchase Conversion Barrier)",
-                    "desc": "ユーザーは残存していますが、コイン購入や課金ページでの離脱が目立ちます。",
-                    "actions": [
-                        "インストール最適化ではなく、課金完了（Purchase）イベントを最適化基準とするキャンペーンを強化",
-                        "ARPPUが検証済みの高価値チャネル（ASAのキーワード広告等）へ予算をシフト",
-                        "クリエイティブ内で『初回購入特典』や『コイン還元キャンペーン』を直接露出し、購買意欲の高い層をフィルタリング"
+                    "immediate": ["インストール目的ではなく、課金（Purchase）イベント最適化キャンペーンへ予算をシフト"],
+                    "optimize": [
+                        "初回課金ハードルを下げる限定オファー（初回コイン増量など）をクリエイティブで直接訴求",
+                        "LTVの高い既存ユーザーの類似オーディエンス（Lookalike）を活用"
                     ]
                 },
                 "構造的な継続率の低下": {
                     "title": "長期継続率の不足 (Long-term Retention Risk)",
-                    "desc": "短期的な体験だけで満足し、アプリに定着する動機付けが不足しています。",
-                    "actions": [
-                        "読み切り作品の素材を減らし、200話以上の『長期連載作品』の素材比率を拡大",
-                        "媒体側の『7日後再訪問ユーザー』最適化ビッディング（AC 2.0/3.0等）を導入",
-                        "お気に入り登録の誘導など、既存のCRMシナリオと連動したリテンション広告の展開"
+                    "immediate": ["ROAS回収期間（Payback Period）が長期化している媒体の目標CPAを厳格化"],
+                    "optimize": [
+                        "読み切り作品より、長期連載・課金単価の高いコンテンツにフォーカスした広告素材の投下",
+                        "媒体側の『7日後再訪問ユーザー』最適化（AEO）を導入"
                     ]
                 }
             }
 
+            # 기본값(Fallback)
             guide = playbook_content.get(main_bottleneck, {
                 "title": "総合効率の最適化 (General Optimization)",
-                "desc": "特定のボトルネックではなく、全体的な指標管理が必要なフェーズです。",
-                "actions": ["高効率キャンペーン（拡大）の予算増額", "低効率媒体の予算削減と予算シフト", "データ信頼性（計測環境）の再検証"]
+                "immediate": ["低効率キャンペーンから高効率キャンペーンへの予算シフト（上位20%へ集中投資）"],
+                "optimize": ["クリエイティブの摩耗（Ad Fatigue）チェックと新規素材のテスト"]
             })
 
+            # 4. OS 및 측정 환경에 따른 동적 액션 추가 (Contextual Actions)
+            measurement_actions = []
+            if ios_ratio > 0.4:
+                measurement_actions.append("🍏 <b>iOS比率が高い環境:</b> SKAdNetworkのコンバージョン値マッピングが現在のボトルネック（例: 課金/継続）を適切にキャッチできているか再設計を推奨。")
+            if low_confidence_count > 0:
+                measurement_actions.append(f"🔍 <b>計測リスク警告:</b> {low_confidence_count}件のキャンペーンで計測信頼性が低いため、MMM（マーケティング・ミックス・モデリング）やインクリメンタリティ・テストでの真の成果検証が必要です。")
+            
+            if not measurement_actions:
+                measurement_actions.append("📊 計測環境は概ね健全ですが、イベント欠損がないか定期的にモニタリングしてください。")
+
+            # 5. UI 렌더링
             st.markdown(f"""
-            <div class="mono-box">
-                <div style="color: #60a5fa; font-size: 1.1rem; font-weight: 700;">🎯 重点改善タスク: {guide['title']}</div>
-                <div style="color: #9ca3af; margin-bottom: 10px;">現状分析: {guide['desc']}</div>
-                <div style="margin-left: 10px;">
-                    {"".join([f"<div style='margin-bottom: 5px;'>• {a}</div>" for a in guide['actions']])}
+            <div class="info-card">
+                <div style="color: #60a5fa; font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem;">
+                    🎯 重点改善テーマ: {guide['title']}
                 </div>
-                <div style="margin-top: 10px; font-size: 0.85rem; color: #f87171;">
-                    ⚠️ この提案は、開発・デザインの修正を行わず、<b>マーケティング運用および予算配分の最適化</b>のみで即座に実行可能です。
+                <div style="color: #d1d5db; margin-bottom: 1.2rem; font-size: 0.95rem;">
+                    {diagnostic_msg}
+                </div>
+                
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    <div style="background-color: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; padding: 0.8rem; border-radius: 4px;">
+                        <div style="color: #ef4444; font-weight: bold; margin-bottom: 0.4rem;">🚨 応急処置 (即時リアロケーション)</div>
+                        {"".join([f"<div style='font-size: 0.9rem; margin-bottom: 4px;'>• {a}</div>" for a in guide['immediate']])}
+                    </div>
+                    
+                    <div style="background-color: rgba(59, 130, 246, 0.1); border-left: 4px solid #3b82f6; padding: 0.8rem; border-radius: 4px;">
+                        <div style="color: #3b82f6; font-weight: bold; margin-bottom: 0.4rem;">🛠️ キャンペーン・クリエイティブ最適化</div>
+                        {"".join([f"<div style='font-size: 0.9rem; margin-bottom: 4px;'>• {a}</div>" for a in guide['optimize']])}
+                    </div>
+
+                    <div style="background-color: rgba(245, 158, 11, 0.1); border-left: 4px solid #f59e0b; padding: 0.8rem; border-radius: 4px;">
+                        <div style="color: #f59e0b; font-weight: bold; margin-bottom: 0.4rem;">📊 データ・計測環境の検証</div>
+                        {"".join([f"<div style='font-size: 0.9rem; margin-bottom: 4px;'>{a}</div>" for a in measurement_actions])}
+                    </div>
                 </div>
             </div>
             """, unsafe_allow_html=True)
+            
         else:
-            st.warning("分析対象のデータがありません。")
+            st.warning("分析対象のデータがありません。フィルター条件を変更してください。")
+
+        
         
         # チャネル・サ마リー
         st.markdown("### チャネル・インテリジェンス (Channel Intelligence)")
