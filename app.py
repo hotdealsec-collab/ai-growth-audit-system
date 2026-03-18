@@ -611,7 +611,7 @@ else:
             low_confidence_count = (filtered_df["measurement_confidence_level"].isin(["低", "極めて低"])).sum()
             
             # 2. 동적 진단 메시지 생성
-            diagnostic_msg = f"選択されたキャンペーン群の主たるボトルネックは「<b>{main_bottleneck}</b>」です。"
+            diagnostic_msg = f"現在表示中のデータの主たるボトルネックは「<b>{main_bottleneck}</b>」です。"
             if avg_health < 50:
                 diagnostic_msg += f"<br>⚠️ 平均成長スコアが <b>{avg_health:.1f}</b> と低迷しており、早急な予算リアロケーションが推奨されます。"
             elif avg_health >= 70:
