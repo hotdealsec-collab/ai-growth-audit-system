@@ -670,38 +670,38 @@ else:
             if not measurement_actions:
                 measurement_actions.append("📊 計測環境は概ね健全ですが、イベント欠損がないか定期的にモニタリングしてください。")
 
-            # 5. UI 렌더링
-            st.markdown(f"""
-            <div class="info-card">
-                <div style="color: #60a5fa; font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem;">
-                    🎯 重点改善テーマ: {guide['title']}
-                </div>
-                <div style="color: #d1d5db; margin-bottom: 1.2rem; font-size: 0.95rem;">
-                    {diagnostic_msg}
-                </div>
-                
-                <div style="display: flex; flex-direction: column; gap: 1rem;">
-                    <div style="background-color: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; padding: 0.8rem; border-radius: 4px;">
-                        <div style="color: #ef4444; font-weight: bold; margin-bottom: 0.4rem;">🚨 応急処置 (即時リアロケーション)</div>
-                        {"".join([f"<div style='font-size: 0.9rem; margin-bottom: 4px;'>• {a}</div>" for a in guide['immediate']])}
-                    </div>
-                    
-                    <div style="background-color: rgba(59, 130, 246, 0.1); border-left: 4px solid #3b82f6; padding: 0.8rem; border-radius: 4px;">
-                        <div style="color: #3b82f6; font-weight: bold; margin-bottom: 0.4rem;">🛠️ キャンペーン・クリエイティブ最適化</div>
-                        {"".join([f"<div style='font-size: 0.9rem; margin-bottom: 4px;'>• {a}</div>" for a in guide['optimize']])}
-                    </div>
+            # 5. UI 렌더링 (Markdown 파서 버그를 막기 위해 HTML 문자열의 왼쪽 들여쓰기를 제거)
+            html_content = f"""
+<div class="info-card">
+    <div style="color: #60a5fa; font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem;">
+        🎯 重点改善テーマ: {guide['title']}
+    </div>
+    <div style="color: #d1d5db; margin-bottom: 1.2rem; font-size: 0.95rem;">
+        {diagnostic_msg}
+    </div>
+    
+    <div style="display: flex; flex-direction: column; gap: 1rem;">
+        <div style="background-color: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; padding: 0.8rem; border-radius: 4px;">
+            <div style="color: #ef4444; font-weight: bold; margin-bottom: 0.4rem;">🚨 応急処置 (即時リアロケーション)</div>
+            {"".join([f"<div style='font-size: 0.9rem; margin-bottom: 4px;'>• {a}</div>" for a in guide['immediate']])}
+        </div>
+        
+        <div style="background-color: rgba(59, 130, 246, 0.1); border-left: 4px solid #3b82f6; padding: 0.8rem; border-radius: 4px;">
+            <div style="color: #3b82f6; font-weight: bold; margin-bottom: 0.4rem;">🛠️ キャンペーン・クリエイティブ最適化</div>
+            {"".join([f"<div style='font-size: 0.9rem; margin-bottom: 4px;'>• {a}</div>" for a in guide['optimize']])}
+        </div>
 
-                    <div style="background-color: rgba(245, 158, 11, 0.1); border-left: 4px solid #f59e0b; padding: 0.8rem; border-radius: 4px;">
-                        <div style="color: #f59e0b; font-weight: bold; margin-bottom: 0.4rem;">📊 データ・計測環境の検証</div>
-                        {"".join([f"<div style='font-size: 0.9rem; margin-bottom: 4px;'>{a}</div>" for a in measurement_actions])}
-                    </div>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+        <div style="background-color: rgba(245, 158, 11, 0.1); border-left: 4px solid #f59e0b; padding: 0.8rem; border-radius: 4px;">
+            <div style="color: #f59e0b; font-weight: bold; margin-bottom: 0.4rem;">📊 データ・計測環境の検証</div>
+            {"".join([f"<div style='font-size: 0.9rem; margin-bottom: 4px;'>{a}</div>" for a in measurement_actions])}
+        </div>
+    </div>
+</div>
+"""
+            st.markdown(html_content, unsafe_allow_html=True)
             
         else:
             st.warning("分析対象のデータがありません。フィルター条件を変更してください。")
-
         
         
         # チャネル・サ마リー
