@@ -538,29 +538,34 @@ else:
         
         # フィルター
         st.markdown("### キャンペーン・エクスプローラー")
-        f1, f2, f3, f4 = st.columns(4)
+        f1, f2, f3, f4, f5 = st.columns(5) # 컬럼을 5개로 확장
 
         channel_options = ["すべて"] + sorted(audit_df["channel"].dropna().unique().tolist())
+        campaign_options = ["すべて"] + sorted(audit_df["campaign"].dropna().unique().tolist()) # 캠페인 옵션 추가
         os_options = ["すべて"] + sorted(audit_df["os"].dropna().unique().tolist())
         reco_options = ["すべて"] + sorted(audit_df["final_recommendation_v4"].dropna().unique().tolist())
         bottleneck_options = ["すべて"] + sorted(audit_df["primary_bottleneck"].dropna().unique().tolist())
 
         selected_channel = f1.selectbox("チャネル", channel_options)
-        selected_os = f2.selectbox("OS", os_options)
-        selected_reco = f3.selectbox("最終推奨アクション", reco_options)
-        selected_bottleneck = f4.selectbox("ボトルネック", bottleneck_options)
+        selected_campaign = f2.selectbox("キャンペーン", campaign_options) # 캠페인 선택창 추가
+        selected_os = f3.selectbox("OS", os_options)
+        selected_reco = f4.selectbox("最終推奨アクション", reco_options)
+        selected_bottleneck = f5.selectbox("ボトルネック", bottleneck_options)
 
         filtered_df = audit_df.copy()
 
+        # 필터 적용 로직
         if selected_channel != "すべて":
             filtered_df = filtered_df[filtered_df["channel"] == selected_channel]
+        if selected_campaign != "すべて": # 캠페인 필터 적용
+            filtered_df = filtered_df[filtered_df["campaign"] == selected_campaign]
         if selected_os != "すべて":
             filtered_df = filtered_df[filtered_df["os"] == selected_os]
         if selected_reco != "すべて":
             filtered_df = filtered_df[filtered_df["final_recommendation_v4"] == selected_reco]
         if selected_bottleneck != "すべて":
             filtered_df = filtered_df[filtered_df["primary_bottleneck"] == selected_bottleneck]
-
+ 
         # チャート 1行目
         col1, col2 = st.columns(2)
 
@@ -610,8 +615,14 @@ else:
             ios_ratio = (filtered_df["os"].str.lower() == "ios").mean()
             low_confidence_count = (filtered_df["measurement_confidence_level"].isin(["低", "極めて低"])).sum()
             
-            # 2. 동적 진단 메시지 생성
-            diagnostic_msg = f"現在表示中のデータの主たるボトルネックは「<b>{main_bottleneck}</b>」です。"
+            # 2. 동적 진단 메시지 생성 (선택한 캠페인 이름 반영)
+            if selected_campaign != "すべて":
+                target_name = f"キャンペーン「{selected_campaign}」"
+            else:
+                target_name = "現在表示中のデータ"
+                
+            diagnostic_msg = f"{target_name}の主たるボトルネックは「<b>{main_bottleneck}</b>」です。"
+            
             if avg_health < 50:
                 diagnostic_msg += f"<br>⚠️ 平均成長スコアが <b>{avg_health:.1f}</b> と低迷しており、早急な予算リアロケーションが推奨されます。"
             elif avg_health >= 70:
