@@ -607,7 +607,7 @@ else:
             
             playbook_content = {
                 "Day-1 適合性の不足": {
-                    "title": "流入とプロダクト의不一致 (Creative-Targeting Misalignment)",
+                    "title": "流入とプロダクトの不一致 (Creative-Targeting Misalignment)",
                     "desc": "広告で期待させた作品や体験が、アプリ起動直後に提供されていません。ユーザーの期待値とのギャップが生じています。",
                     "actions": [
                         "広告クリエイティブに使用した作品を、アプリのホーム上部バナーにも固定表示し、導線を一致させる",
@@ -615,7 +615,7 @@ else:
                         "クリエイティブ内に『待てば無料』システムの説明を加え、ルールを理解した高関心層のみを誘導"
                     ]
                 },
-                "初期アクティベーション의離脱": {
+                "初期アクティベーションの離脱": {
                     "title": "初期アクティベーションの失敗 (Early Value Delivery Issue)",
                     "desc": "インストール後、最初の1話閲覧や無料分消化までに離脱が発生しています。",
                     "actions": [
@@ -687,7 +687,7 @@ else:
         st.dataframe(styled_df, use_container_width=True, height=420)
 
         # ダウンロード・センター
-        st.markdown("### ダウン로드・センター (Download Center)")
+        st.markdown("### ダウンロード・センター (Download Center)")
         d1, d2 = st.columns(2)
 
         d1.download_button(
